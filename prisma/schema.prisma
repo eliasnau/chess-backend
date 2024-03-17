@@ -1,0 +1,45 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  username  String    @unique
+  email     String    @unique
+  password  String
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  elo Int @default(100)
+
+  games     Game[]   // Defines a one-to-many relationship with Game
+  sessions Session[]
+}
+
+model Game {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  fen       String    // Represents the current state of the game in FEN notation
+  history   Json      // Stores the game history as JSON
+  pgn       String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  user      User      @relation(fields: [userId], references: [id]) // Define single user per game
+  userId    String @db.ObjectId
+}
+
+model Session {
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  cookie     String    @unique
+  device     String?   // Add a field to store the device information
+  ipAddress  String?   // Add a field to store the IP address
+  createdAt  DateTime  @default(now())
+  user User @relation(fields: [userId], references: [id])
+  userId String @db.ObjectId
+  // Add more fields as needed
+}
